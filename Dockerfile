@@ -1,15 +1,10 @@
-FROM node:13
-
-COPY . /www/app
-
-RUN npm install -g cordova ionic
-RUN npm install -g bower
-RUN npm install -g gulp
-
-WORKDIR /www/app
+FROM node:13-alpine as build
+WORKDIR /app
+COPY . ./
+RUN npm install -g @ionic/cli
 RUN npm install
-
-EXPOSE 8100
-
-ENTRYPOINT ["ionic"]
-CMD ["serve", "8100", "--address", "0.0.0.0"]
+RUN ionic build
+FROM nginx:alpine
+RUN rm -rf /usr/share/nginx/html/*
+COPY --from=build /app/www/ /usr/share/nginx/html/
+EXPOSE 8080
